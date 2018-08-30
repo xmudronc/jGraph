@@ -1,12 +1,16 @@
 package cz.mendelu;
 
 import java.awt.Button;
+import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
@@ -234,11 +238,7 @@ public class App
                 try {
                     lengthPath.commitEdit();
                 } catch ( java.text.ParseException exc ) {}
-                //graph.getPathByName(selected).getProperties().setLength((Integer) lengthPath.getValue());
                 String selName = namePath.getText();
-                /*graph.getPathByName(selected).getProperties().setName(selName);
-                graph.getPathByName(selected).setFrom(graph.getNodeByName((String) fromPath.getSelectedItem()));
-                graph.getPathByName(selected).setTo(graph.getNodeByName((String) toPath.getSelectedItem()));*/
 
                 graph.removePath(graph.getPathByName(selected));
                 graph.addPath(new Path(graph.getNodeByName((String) fromPath.getSelectedItem()), graph.getNodeByName((String) toPath.getSelectedItem()), new Properties(selName, (Integer) lengthPath.getValue(), 0)));
@@ -308,8 +308,19 @@ public class App
                 graph.printAllPaths();
             }
         });
+        Button drawGraph = new Button("draw graph");
+        drawGraph.addActionListener(new ActionListener(){        
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame draw = new JFrame();
+                draw.setSize(640, 480);
+                draw.add(new ShapesPanel(graph.getNodes(), graph.getPaths()));
+                draw.setVisible(true);
+            }
+        });
         panel5.add(printNodes);
         panel5.add(printPaths);
+        panel5.add(drawGraph);
         frame.add(panel5);
 
         frame.setVisible(true);

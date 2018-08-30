@@ -7,4 +7,5 @@ to do:
 
 1. load graphs from file
 2. graph operations (shortest path, minimal number of colors ...) 
+3. graph visualisation
 ...
