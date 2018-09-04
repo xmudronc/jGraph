@@ -20,11 +20,11 @@ public class ShapesPanel extends JPanel
         this.paths = paths;
 
         int count = 0;
-        for (int y = 0; y < nodes.size(); y++) {
+        for (int y = 0; y < this.nodes.size(); y++) {
             ArrayList<Node> tmp = new ArrayList<>();
             for (int x = 0; x < 3; x++) {
-                if (count < nodes.size()) {
-                    tmp.add(nodes.get(count));
+                if (count < this.nodes.size()) {
+                    tmp.add(this.nodes.get(count));
                     count++;
                 } else {
                     tmp.add(null);
@@ -47,9 +47,36 @@ public class ShapesPanel extends JPanel
                 }
             }
         }
-        //draw lines to do
-        // draw 2D lines in green and yellow               
-        g2d.setPaint(Color.black);                       
-        g2d.draw( new Line2D.Double( 395, 30, 320, 150 ) );
+             
+        g2d.setPaint(Color.red);
+        for (Path _path : paths) {
+            int x1 = 0;
+            int y1 = 0;
+            int x2 = 0;
+            int y2 = 0;
+            for (int y = 0; y < map.size(); y++) {
+                for (int x = 0; x < map.get(0).size(); x++) { 
+                    if (map.get(y).get(x) != null) {
+                        if (map.get(y).get(x).equals(_path.getFrom())) {
+                            x1 = x;
+                            y1 = y;
+                            break;
+                        }
+                    }
+                }
+            } 
+            for (int y = 0; y < map.size(); y++) {
+                for (int x = 0; x < map.get(0).size(); x++) {
+                    if (map.get(y).get(x) != null) {
+                        if (map.get(y).get(x).equals(_path.getTo())) {
+                            x2 = x;
+                            y2 = y;
+                            break;
+                        }
+                    }
+                }
+            }
+            g2d.draw( new Line2D.Double( x1*100 + 25, y1*100 + 25, x2*100 + 25, y2*100 + 25 ) );
+        }
     }
 }
