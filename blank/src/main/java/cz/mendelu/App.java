@@ -4,6 +4,7 @@ import java.awt.Button;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Graphics2D;
+import java.awt.List;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,9 +12,17 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -23,6 +32,31 @@ import javax.swing.SwingConstants;
 public class App 
 {
     private static Graph graph = new Graph();
+
+    public static boolean containsPath(ArrayList<Path> paths, String name) {
+        boolean out = false;
+        
+        for (Path _path : paths) {
+            if (_path.getProperties().getName().equals(name)) {
+                out = true;
+                break;
+            }
+        }
+        
+        return out;
+    }
+
+    public static ArrayList<Path> removePathFromArray(ArrayList<Path> paths, String name) {
+        ArrayList<Path> out = new ArrayList<>();
+
+        for (Path _path : paths) {
+            if (!_path.getProperties().getName().equals(name)) {
+                out.add(_path);
+            }
+        }
+
+        return out;
+    }
 
     public static void main( String[] args )
     {
@@ -318,6 +352,104 @@ public class App
                 draw.setVisible(true);
             }
         });
+        Button loadCsv = new Button("load csv");
+        loadCsv.addActionListener(new ActionListener(){        
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser chooser = null;;
+                if (chooser == null) {
+                    chooser = new JFileChooser();
+                    chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    chooser.setAcceptAllFileFilterUsed(false);
+                    chooser.addChoosableFileFilter(new javax.swing.filechooser.FileFilter(){
+                        @Override
+                        public boolean accept(File f) {
+                            return f.isDirectory() || f.getName().toLowerCase().endsWith(".csv");
+                        }
+
+                        @Override
+                        public String getDescription() {
+                            return "CSV Files (*.csv)";
+                        }
+                    });
+                }
+                switch (chooser.showOpenDialog(null)) {
+                    case JFileChooser.APPROVE_OPTION:
+                        try (BufferedReader br = new BufferedReader(new FileReader(chooser.getSelectedFile()))) {
+                            String text = null;
+                            ArrayList<Path> tmpPaths = new ArrayList<>();                            
+                            while ((text = br.readLine()) != null) {
+                                java.util.List<String> items = null;
+                                items = Arrays.asList(text.split("\\s*,\\s*"));
+                                if (graph.getNodeByName(items.get(0)) == null) {
+                                    graph.addNode(new Node(new Properties(items.get(0), 0, Integer.parseInt(items.get(1))))); 
+                                } else {
+                                    graph.removeNode(graph.getNodeByName(items.get(0)));
+                                    graph.addNode(new Node(new Properties(items.get(0), 0, Integer.parseInt(items.get(1))))); 
+                                }                           
+                                if (!items.get(2).equals("-")) {
+                                    if (graph.getNodeByName(items.get(2)) == null) {
+                                        graph.addNode(new Node(new Properties(items.get(2), 0, Integer.parseInt(items.get(3))))); 
+                                    }  else {
+                                        graph.removeNode(graph.getNodeByName(items.get(2)));
+                                        graph.addNode(new Node(new Properties(items.get(2), 0, Integer.parseInt(items.get(3))))); 
+                                    }
+                                }
+                                if (!items.get(4).equals("-")) {
+                                    if (!containsPath(tmpPaths, items.get(4))) {
+                                        tmpPaths.add(new Path(graph.getNodeByName(items.get(0)), graph.getNodeByName(items.get(2)), new Properties(items.get(4), Integer.parseInt(items.get(5)), 0)));
+                                    } else {
+                                        tmpPaths = removePathFromArray(tmpPaths, items.get(4));
+                                        tmpPaths.add(new Path(graph.getNodeByName(items.get(0)), graph.getNodeByName(items.get(2)), new Properties(items.get(4), Integer.parseInt(items.get(5)), 0)));
+                                    }
+                                }
+                            }
+                            for (Path _path : tmpPaths) {
+                                graph.addPath(_path);
+                            }
+
+                            nodesToEdit.removeAll();
+                            for (Node _node : graph.getNodes()) {
+                                nodesToEdit.addItem(_node.getProperties().getName());
+                            }
+                            fromNewPath.removeAll();
+                            for (Node _node : graph.getNodes()) {
+                                fromNewPath.addItem(_node.getProperties().getName());
+                            }
+                            toNewPath.removeAll();
+                            for (Node _node : graph.getNodes()) {
+                                toNewPath.addItem(_node.getProperties().getName());
+                            }
+                            pathsToEdit.removeAll();
+                            for (Path _path : graph.getPaths()) {
+                                pathsToEdit.addItem(_path.getProperties().getName());
+                            }
+                            fromPath.removeAll();
+                            for (Node _node : graph.getNodes()) {
+                                fromPath.addItem(_node.getProperties().getName());
+                            }
+                            toPath.removeAll();
+                            for (Node _node : graph.getNodes()) {
+                                toPath.addItem(_node.getProperties().getName());
+                            }
+                            nameNewNode.setText("nd" + (graph.getNodes().size() + 1));
+                            nameNewPath.setText("pt" + (graph.getPaths().size() + 1));
+
+                            if (nodesToEdit.getComponentCount() > 0) {
+                                nodesToEdit.setSelectedIndex(0);
+                            }
+                            if (pathsToEdit.getComponentCount() > 0) {
+                                pathsToEdit.setSelectedIndex(0);
+                            }
+                        } catch (IOException exp) {
+                            exp.printStackTrace();
+                        }
+                        break;
+                }
+            
+            }
+        });
+        panel5.add(loadCsv);
         panel5.add(printNodes);
         panel5.add(printPaths);
         panel5.add(drawGraph);
